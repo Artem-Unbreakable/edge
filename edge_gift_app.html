@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Edge Gift Mini App</title>
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg-color: #0f111a;
+      --card-bg: #1a1d2e;
+      --card-border: #2a2e45;
+      --accent-color: #0088cc;
+      --accent-gradient: linear-gradient(135deg, #0088cc, #00b4d8);
+      --gold-gradient: linear-gradient(135deg, #ffb703, #fb8500);
+      --purple-gradient: linear-gradient(135deg, #7209b7, #f72585);
+      --text-main: #ffffff;
+      --text-muted: #8e94a8;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 80px;
+      overflow-x: hidden;
+    }
+
+    /* Шапка приложения */
+    header {
+      background: rgba(26, 29, 46, 0.8);
+      backdrop-filter: blur(12px);
+      padding: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.2rem;
+      background: linear-gradient(45deg, #0088cc, #ffb703);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .balance-badge {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 8px 14px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .balance-badge span {
+      color: #ffb703;
+    }
+
+    /* Контент экранов */
+    .screen {
+      display: none;
+      padding: 16px;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Сетка кейсов */
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .cases-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .case-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .case-card:active {
+      transform: scale(0.97);
+    }
+
+    .case-icon {
+      font-size: 3.2rem;
+      margin: 10px 0;
+      filter: drop-shadow(0 4px 12px rgba(0, 136, 204, 0.3));
+    }
+
+    .case-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .case-price {
+      background: rgba(0, 136, 204, 0.15);
+      color: var(--accent-color);
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    /* Рулетка открытия кейса */
+    .roulette-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 17, 26, 0.95);
+      backdrop-filter: blur(16px);
+      z-index: 200;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .roulette-modal.active {
+      display: flex;
+    }
+
+    .roulette-wrapper {
+      width: 100%;
+      max-width: 360px;
+      height: 130px;
+      background: var(--card-bg);
+      border: 2px solid var(--accent-color);
+      border-radius: var(--radius);
+      position: relative;
+      overflow: hidden;
+      margin: 20px 0;
+      box-shadow: 0 0 30px rgba(0, 136, 204, 0.2);
+    }
+
+    .roulette-pointer {
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 50%;
+      width: 4px;
+      background: #ffb703;
+      transform: translateX(-50%);
+      z-index: 10;
+      box-shadow: 0 0 10px #ffb703;
+    }
+
+    .roulette-track {
+      display: flex;
+      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      will-change: transform;
+      transition: transform 5s cubic-bezier(0.1, 1, 0.1, 1);
+    }
+
+    .item-card {
+      width: 100px;
+      height: 100%;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      border-right: 1px solid var(--card-border);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .item-card .icon { font-size: 2.2rem; }
+    .item-card .name { font-size: 0.7rem; text-align: center; margin-top: 4px; font-weight: 600; }
+    .item-card .price { font-size: 0.65rem; color: #ffb703; font-weight: 700; }
+
+    /* Кнопки */
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: opacity 0.2s;
+    }
+
+    .btn-primary { background: var(--accent-gradient); color: #fff; }
+    .btn-gold { background: var(--gold-gradient); color: #111; }
+    .btn-secondary { background: var(--card-bg); border: 1px solid var(--card-border); color: #fff; }
+
+    .btn:active { opacity: 0.8; }
+
+    /* Инвентарь */
+    .inventory-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .inv-item {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 12px;
+      text-align: center;
+    }
+
+    .inv-item .icon { font-size: 2.5rem; margin-bottom: 6px; }
+    .inv-item .name { font-size: 0.85rem; font-weight: 700; }
+    .inv-item .price { font-size: 0.8rem; color: #ffb703; font-weight: 700; margin-top: 4px; }
+
+    /* Пополнение Stars */
+    .stars-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .star-pack {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .star-pack .stars-count { font-size: 1.2rem; font-weight: 800; color: #ffb703; margin: 6px 0; }
+    .star-pack .coins-gain { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* Навигационная панель снизу */
+    nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(26, 29, 46, 0.95);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .nav-item.active {
+      color: var(--accent-color);
+    }
+
+    .nav-item .nav-icon {
+      font-size: 1.4rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Шапка Edge Gift -->
+  <header>
+    <div class="brand">
+      <span>🎁 EDGE GIFT</span>
+    </div>
+    <div class="balance-badge">
+      <span id="user-balance">1,000</span> 🪙
+    </div>
+  </header>
+
+  <!-- Экран 1: Кейсы / Подарки -->
+  <div id="screen-cases" class="screen active">
+    <div class="section-title">🎁 Кейсы Telegram Подарков</div>
+    <div class="cases-grid">
+      <div class="case-card" onclick="openRoulette('starter')">
+        <div class="case-icon">🎁</div>
+        <div class="case-title">Starter Box</div>
+        <div class="case-price">100 🪙</div>
+      </div>
+      <div class="case-card" onclick="openRoulette('stars')">
+        <div class="case-icon">⭐</div>
+        <div class="case-title">Stars Box</div>
+        <div class="case-price">500 🪙</div>
+      </div>
+      <div class="case-card" onclick="openRoulette('vip')">
+        <div class="case-icon">💎</div>
+        <div class="case-title">High Roller NFT</div>
+        <div class="case-price">2,500 🪙</div>
+      </div>
+      <div class="case-card" onclick="openRoulette('legend')">
+        <div class="case-icon">👑</div>
+        <div class="case-title">Durov Exclusive</div>
+        <div class="case-price">10,000 🪙</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Экран 2: Edge Battles -->
+  <div id="screen-battles" class="screen">
+    <div class="section-title">⚔️ Edge PvP Battles</div>
+    <div style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 20px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 10px;">⚔️</div>
+      <h3 style="margin-bottom: 8px;">Быстрый PvP Битва</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">Открывайте 3 бокса одновременно с соперником. Победитель забирает всё!</p>
+      <button class="btn btn-primary" onclick="startBattle()">Начать битву (300 🪙)</button>
+    </div>
+  </div>
+
+  <!-- Экран 3: Инвентарь / Коллекция -->
+  <div id="screen-inventory" class="screen">
+    <div class="section-title">🎒 Моя Коллекция NFT</div>
+    <div class="inventory-grid" id="inventory-list">
+      <!-- Элементы инвентаря генерируются через JS -->
+    </div>
+    <button class="btn btn-gold" onclick="sellAll()">💰 Продать все NFT на Fragment</button>
+  </div>
+
+  <!-- Экран 4: Пополнение Stars -->
+  <div id="screen-deposit" class="screen">
+    <div class="section-title">⭐ Пополнение Stars (Курс 1:10)</div>
+    <div class="stars-grid">
+      <div class="star-pack" onclick="payStars(10)">
+        <div style="font-size: 2rem;">⭐</div>
+        <div class="stars-count">10 Stars</div>
+        <div class="coins-gain">+100 🪙</div>
+      </div>
+      <div class="star-pack" onclick="payStars(50)">
+        <div style="font-size: 2rem;">⭐</div>
+        <div class="stars-count">50 Stars</div>
+        <div class="coins-gain">+500 🪙</div>
+      </div>
+      <div class="star-pack" onclick="payStars(100)">
+        <div style="font-size: 2rem;">⭐</div>
+        <div class="stars-count">100 Stars</div>
+        <div class="coins-gain">+1,000 🪙</div>
+      </div>
+      <div class="star-pack" onclick="payStars(500)">
+        <div style="font-size: 2rem;">⭐</div>
+        <div class="stars-count">500 Stars</div>
+        <div class="coins-gain">+5,000 🪙</div>
+      </div>
+      <div class="star-pack" onclick="payStars(1000)">
+        <div style="font-size: 2rem;">⭐</div>
+        <div class="stars-count">1,000 Stars</div>
+        <div class="coins-gain">+10,000 🪙</div>
+      </div>
+      <div class="star-pack" onclick="payStars(5000)">
+        <div style="font-size: 2rem;">⭐</div>
+        <div class="stars-count">5,000 Stars</div>
+        <div class="coins-gain">+50,000 🪙</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно с рулеткой открытия -->
+  <div class="roulette-modal" id="roulette-modal">
+    <h3 id="modal-case-title">Распаковка Бокса...</h3>
+    
+    <div class="roulette-wrapper">
+      <div class="roulette-pointer"></div>
+      <div class="roulette-track" id="roulette-track">
