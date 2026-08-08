@@ -8,8 +8,7 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, LabeledPrice, PreCheckoutQuery
 
-BOT_TOKEN = "8703953789:AAHDQfshxYkC_tNC7WL0-z9YeOoafpFxwtk"  # 👈 Вставьте ваш токен от BotFather
-# Ссылку на WebApp возьмем из настроек Render автоматическм
+BOT_TOKEN = "ВАШ_ТОКЕН_ОТ_BOTFATHER"  # 👈 Вставьте ваш токен от BotFather
 WEBAPP_URL = os.environ.get("RENDER_EXTERNAL_URL", "http://localhost:8080")
 
 DB_NAME = "edge_gift_webapp.db"
@@ -104,7 +103,7 @@ async def cmd_start(message: types.Message):
 
     text = (
         f"🎁 <b>Добро пожаловать в Edge Gift WebApp!</b>\n\n"
-        f"Нажмите кнопку ниже, чтобы запустить приложение с боксами, рулеткой и NFT!"
+        f"Нажмите кнопку ниже, чтобы запустить графическое приложение с рулеткой кейсов!"
     )
     await message.answer(text, parse_mode="HTML", reply_markup=keyboard)
 
@@ -121,7 +120,7 @@ async def process_successful_payment(message: types.Message):
         await update_user_balance(message.from_user.id, coins)
         await message.answer(f"🎉 Зачислено: <b>+{coins:,} 🪙</b>!", parse_mode="HTML")
 
-# HTTP handlers для связи приложения с бэкендом
+# HTTP handlers для Mini App
 async def handle_webapp_index(request):
     return web.FileResponse('edge_gift_app.html')
 

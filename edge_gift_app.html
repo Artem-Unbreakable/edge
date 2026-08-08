@@ -7,262 +7,566 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg-color: #0b0e14;
-      --card-bg: #161b26;
-      --card-border: #232a3b;
-      --accent-color: #0088cc;
-      --accent-gradient: linear-gradient(135deg, #0088cc, #00b4d8);
-      --gold-gradient: linear-gradient(135deg, #ffb703, #fb8500);
-      --text-main: #ffffff;
-      --text-muted: #8e94a8;
-      --radius: 16px;
+      --bg-dark: #090c15;
+      --card-bg: #131927;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-blue: #0088cc;
+      --accent-blue-glow: rgba(0, 136, 204, 0.4);
+      --gold-gradient: linear-gradient(135deg, #ffd166, #f77f00);
+      --purple-gradient: linear-gradient(135deg, #8a2be2, #da70d6);
+      --text-primary: #ffffff;
+      --text-secondary: #94a3b8;
+      --radius-lg: 20px;
+      --radius-md: 14px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; user-select: none; }
-    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; padding-bottom: 90px; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
 
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding-bottom: 90px;
+      overflow-x: hidden;
+    }
+
+    /* Верхний бар Edge Gift */
     header {
-      background: rgba(22, 27, 38, 0.9);
-      backdrop-filter: blur(12px);
-      padding: 16px;
-      position: sticky; top: 0; z-index: 100;
-      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(19, 25, 39, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 14px 18px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       border-bottom: 1px solid var(--card-border);
     }
 
-    .brand { font-weight: 900; font-size: 1.2rem; background: linear-gradient(45deg, #0088cc, #ffb703); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .balance-badge { background: var(--card-bg); border: 1px solid var(--card-border); padding: 8px 16px; border-radius: 20px; font-weight: 800; }
-    .balance-badge span { color: #ffb703; }
-
-    .screen { display: none; padding: 16px; }
-    .screen.active { display: block; }
-
-    .section-title { font-size: 0.9rem; font-weight: 800; margin-bottom: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-
-    .cases-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-    .case-card {
-      background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius);
-      padding: 16px; display: flex; flex-direction: column; align-items: center; text-align: center;
-      cursor: pointer; transition: transform 0.15s;
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .case-card:active { transform: scale(0.96); }
-    .case-icon { font-size: 3.5rem; margin: 10px 0; }
-    .case-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
-    .case-price { background: rgba(0, 136, 204, 0.2); color: var(--accent-color); padding: 6px 12px; border-radius: 12px; font-weight: 800; font-size: 0.85rem; width: 100%; margin-top: 6px; }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      box-shadow: 0 0 12px var(--accent-blue-glow);
+    }
+
+    .username-box {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .username {
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+
+    .user-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .balance-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      padding: 8px 14px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+
+    .balance-pill span {
+      color: #ffd166;
+    }
+
+    /* Экраны приложения */
+    .screen {
+      display: none;
+      padding: 18px;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 14px;
+    }
+
+    /* Сетка боксов */
+    .boxes-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .box-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .box-card:active {
+      transform: scale(0.96);
+      border-color: var(--accent-blue);
+    }
+
+    .box-img {
+      font-size: 3.8rem;
+      margin: 12px 0;
+      filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5));
+    }
+
+    .box-name {
+      font-weight: 800;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .box-btn {
+      background: rgba(0, 136, 204, 0.15);
+      color: var(--accent-blue);
+      border: 1px solid rgba(0, 136, 204, 0.3);
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      font-weight: 800;
+      font-size: 0.85rem;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    /* Модальное окно просмотра / крутки */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(9, 12, 21, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 200;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 380px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+      position: relative;
+    }
 
     /* Рулетка */
-    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 14, 20, 0.95); backdrop-filter: blur(20px); z-index: 200; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-    .modal.active { display: flex; }
-    .roulette-box { width: 100%; max-width: 360px; height: 130px; background: var(--card-bg); border: 2px solid var(--accent-color); border-radius: var(--radius); position: relative; overflow: hidden; margin: 20px 0; }
-    .pointer { position: absolute; top: 0; bottom: 0; left: 50%; width: 4px; background: #ffb703; transform: translateX(-50%); z-index: 10; box-shadow: 0 0 10px #ffb703; }
-    .track { display: flex; height: 100%; position: absolute; left: 0; top: 0; transition: transform 5s cubic-bezier(0.1, 1, 0.1, 1); }
-    .track-item { width: 100px; height: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid var(--card-border); padding: 6px; }
+    .roulette-container {
+      width: 100%;
+      height: 120px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid var(--accent-blue);
+      border-radius: var(--radius-md);
+      position: relative;
+      overflow: hidden;
+      margin: 20px 0;
+      box-shadow: 0 0 24px rgba(0, 136, 204, 0.25);
+    }
 
-    .btn { width: 100%; padding: 14px; border: none; border-radius: var(--radius); font-weight: 800; font-size: 1rem; cursor: pointer; text-align: center; }
-    .btn-primary { background: var(--accent-gradient); color: #fff; }
-    .btn-gold { background: var(--gold-gradient); color: #111; margin-top: 10px; }
+    .roulette-pointer {
+      position: absolute;
+      top: 0; bottom: 0; left: 50%;
+      width: 4px;
+      background: #ffd166;
+      transform: translateX(-50%);
+      z-index: 10;
+      box-shadow: 0 0 12px #ffd166;
+    }
+
+    .roulette-track {
+      display: flex;
+      height: 100%;
+      position: absolute;
+      left: 0; top: 0;
+      will-change: transform;
+    }
+
+    .track-item {
+      width: 90px;
+      height: 100%;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 6px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-main { background: linear-gradient(135deg, #0088cc, #00b4d8); color: #fff; }
+    .btn-gold { background: var(--gold-gradient); color: #000; }
+    .btn-close { background: rgba(255, 255, 255, 0.1); color: var(--text-primary); margin-top: 10px; }
 
     /* Инвентарь */
-    .inventory-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
-    .inv-item { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 12px; text-align: center; }
+    .inventory-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
 
-    nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(22, 27, 38, 0.95); backdrop-filter: blur(16px); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 100; }
-    .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); font-size: 0.75rem; font-weight: 700; cursor: pointer; }
-    .nav-btn.active { color: var(--accent-color); }
+    .inv-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      text-align: center;
+    }
+
+    /* Навигация снизу */
+    nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(19, 25, 39, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0;
+      z-index: 100;
+    }
+
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .nav-btn.active {
+      color: var(--accent-blue);
+    }
+
+    .nav-btn .icon {
+      font-size: 1.4rem;
+    }
   </style>
 </head>
 <body>
 
+  <!-- Шапка Edge Gift -->
   <header>
-    <div class="brand">🎁 EDGE GIFT</div>
-    <div class="balance-badge"><span id="balance">1,000</span> 🪙</div>
+    <div class="user-info">
+      <div class="avatar" id="user-avatar">E</div>
+      <div class="username-box">
+        <div class="username" id="user-name">Edge Player</div>
+        <div class="user-subtitle">VIP Member</div>
+      </div>
+    </div>
+    <div class="balance-pill">
+      <span id="user-balance">1,000</span> 🪙
+    </div>
   </header>
 
+  <!-- Экран 1: Кейсы -->
   <div id="screen-cases" class="screen active">
     <div class="section-title">🎁 Кейсы Telegram Подарков</div>
-    <div class="cases-grid">
-      <div class="case-card" onclick="startSpin('starter', 100)">
-        <div class="case-icon">🎁</div>
-        <div class="case-title">Starter Box</div>
-        <div class="case-price">100 🪙</div>
+    <div class="boxes-grid">
+      <div class="box-card" onclick="openBoxModal('starter')">
+        <div class="box-img">🎁</div>
+        <div class="box-name">Starter Box</div>
+        <div class="box-btn">100 🪙</div>
       </div>
-      <div class="case-card" onclick="startSpin('stars', 500)">
-        <div class="case-icon">⭐</div>
-        <div class="case-title">Stars Box</div>
-        <div class="case-price">500 🪙</div>
+      <div class="box-card" onclick="openBoxModal('stars')">
+        <div class="box-img">⭐</div>
+        <div class="box-name">Stars Box</div>
+        <div class="box-btn">500 🪙</div>
       </div>
-      <div class="case-card" onclick="startSpin('vip', 2500)">
-        <div class="case-icon">💎</div>
-        <div class="case-title">High Roller NFT</div>
-        <div class="case-price">2,500 🪙</div>
+      <div class="box-card" onclick="openBoxModal('vip')">
+        <div class="box-img">💎</div>
+        <div class="box-name">High Roller</div>
+        <div class="box-btn">2,500 🪙</div>
       </div>
     </div>
   </div>
 
+  <!-- Экран 2: Коллекция -->
   <div id="screen-inventory" class="screen">
     <div class="section-title">🎒 Моя Коллекция NFT</div>
-    <div class="inventory-grid" id="inventory-list"></div>
-    <button class="btn btn-gold" onclick="sellAll()">💰 Продать всё на Fragment</button>
+    <div class="inventory-grid" id="inventory-container">
+      <div style="grid-column: span 2; text-align: center; color: var(--text-secondary); padding: 40px 0;">Ваша коллекция пуста. Откройте бокс!</div>
+    </div>
+    <button class="btn btn-gold" onclick="sellAllNFT()">💰 Продать все на Fragment</button>
   </div>
 
+  <!-- Экран 3: Пополнение Stars -->
   <div id="screen-deposit" class="screen">
-    <div class="section-title">⭐ Пополнение Stars (1 Star = 10 🪙)</div>
-    <div class="cases-grid">
-      <div class="case-card" onclick="buyStars(10)">
-        <div class="case-icon">⭐</div>
-        <div class="case-title">10 Stars</div>
-        <div class="case-price">+100 🪙</div>
+    <div class="section-title">⭐ Пополнение через Telegram Stars (1 Star = 10 🪙)</div>
+    <div class="boxes-grid">
+      <div class="box-card" onclick="buyStars(10)">
+        <div class="box-img">⭐</div>
+        <div class="box-name">10 Stars</div>
+        <div class="box-btn">+100 🪙</div>
       </div>
-      <div class="case-card" onclick="buyStars(100)">
-        <div class="case-icon">⭐</div>
-        <div class="case-title">100 Stars</div>
-        <div class="case-price">+1,000 🪙</div>
+      <div class="box-card" onclick="buyStars(100)">
+        <div class="box-img">⭐</div>
+        <div class="box-name">100 Stars</div>
+        <div class="box-btn">+1,000 🪙</div>
+      </div>
+      <div class="box-card" onclick="buyStars(500)">
+        <div class="box-img">⭐</div>
+        <div class="box-name">500 Stars</div>
+        <div class="box-btn">+5,000 🪙</div>
+      </div>
+      <div class="box-card" onclick="buyStars(1000)">
+        <div class="box-img">⭐</div>
+        <div class="box-name">1,000 Stars</div>
+        <div class="box-btn">+10,000 🪙</div>
       </div>
     </div>
   </div>
 
-  <!-- Модалка с Рулеткой -->
-  <div class="modal" id="roulette-modal">
-    <h3 id="modal-status">Открываем бокс...</h3>
-    <div class="roulette-box">
-      <div class="pointer"></div>
-      <div class="track" id="track"></div>
+  <!-- Модалка Просмотра / Рулетки -->
+  <div class="modal-overlay" id="modal-box">
+    <div class="modal-card">
+      <h2 id="modal-title" style="margin-bottom: 6px;">Starter Box</h2>
+      <p id="modal-subtitle" style="color: var(--text-secondary); font-size: 0.85rem;">Стоимость: 100 🪙</p>
+
+      <div class="roulette-container">
+        <div class="roulette-pointer"></div>
+        <div class="roulette-track" id="roulette-track"></div>
+      </div>
+
+      <button class="btn btn-main" id="btn-spin" onclick="spinRoulette()">Открыть за 100 🪙</button>
+      <button class="btn btn-close" id="btn-close-modal" onclick="closeModal()">Отмена</button>
     </div>
-    <button class="btn btn-primary" id="modal-close" style="display:none;" onclick="closeModal()">Забрать выигрыш</button>
   </div>
 
+  <!-- Нижняя Панель -->
   <nav>
-    <div class="nav-btn active" onclick="showScreen('cases', this)"><div>🎁</div>Кейсы</div>
-    <div class="nav-btn" onclick="showScreen('inventory', this)"><div>🎒</div>Коллекция</div>
-    <div class="nav-btn" onclick="showScreen('deposit', this)"><div>⭐</div>Stars</div>
+    <div class="nav-btn active" onclick="switchTab('cases', this)"><div class="icon">🎁</div>Боксы</div>
+    <div class="nav-btn" onclick="switchTab('inventory', this)"><div class="icon">🎒</div>Коллекция</div>
+    <div class="nav-btn" onclick="switchTab('deposit', this)"><div class="icon">⭐</div>Stars</div>
   </nav>
 
   <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    
-    // Получаем Telegram ID текущего пользователя
-    const userId = tg.initDataUnsafe?.user?.id || 123456789;
+    const tg = window.Telegram?.WebApp;
+    if (tg) { tg.expand(); tg.ready(); }
 
-    async function loadUserData() {
-      const res = await fetch(`/api/user?user_id=${userId}`);
-      const data = await res.json();
-      document.getElementById('balance').innerText = Math.round(data.user.balance).toLocaleString();
-      
-      const invList = document.getElementById('inventory-list');
-      invList.innerHTML = '';
-      data.inventory.forEach(item => {
-        invList.innerHTML += `
-          <div class="inv-item">
-            <div style="font-size:2rem">${item.icon}</div>
-            <div style="font-size:0.8rem; font-weight:700">${item.name}</div>
-            <div style="font-size:0.8rem; color:#ffb703; font-weight:800">${item.price} 🪙</div>
-          </div>
-        `;
-      });
+    const userId = tg?.initDataUnsafe?.user?.id || 123456789;
+    const userName = tg?.initDataUnsafe?.user?.first_name || 'Edge Player';
+
+    document.getElementById('user-name').innerText = userName;
+    document.getElementById('user-avatar').innerText = userName.charAt(0).toUpperCase();
+
+    let currentCaseKey = 'starter';
+    let currentCasePrice = 100;
+
+    function haptic() {
+      try { tg?.HapticFeedback?.impactOccurred('medium'); } catch(e){}
     }
 
-    function showScreen(name, el) {
+    async function loadData() {
+      try {
+        const res = await fetch(`/api/user?user_id=${userId}`);
+        const data = await res.json();
+        document.getElementById('user-balance').innerText = Math.round(data.user.balance).toLocaleString();
+
+        const invContainer = document.getElementById('inventory-container');
+        if (data.inventory.length === 0) {
+          invContainer.innerHTML = '<div style="grid-column: span 2; text-align: center; color: var(--text-secondary); padding: 40px 0;">Ваша коллекция пуста. Откройте бокс!</div>';
+        } else {
+          invContainer.innerHTML = '';
+          data.inventory.forEach(item => {
+            invContainer.innerHTML += `
+              <div class="inv-card">
+                <div style="font-size: 2.8rem; margin-bottom: 6px;">${item.icon}</div>
+                <div style="font-size: 0.85rem; font-weight: 800;">${item.name}</div>
+                <div style="font-size: 0.8rem; color: #ffd166; font-weight: 800; margin-top: 4px;">${item.price} 🪙</div>
+              </div>
+            `;
+          });
+        }
+      } catch(e) { console.error(e); }
+    }
+
+    function switchTab(name, el) {
+      haptic();
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(`screen-${name}`).classList.add('active');
       el.classList.add('active');
-      if (name === 'inventory') loadUserData();
+      if (name === 'inventory') loadData();
     }
 
-    async function startSpin(caseKey, price) {
-      const modal = document.getElementById('roulette-modal');
-      const track = document.getElementById('track');
-      const modalStatus = document.getElementById('modal-status');
-      const closeBtn = document.getElementById('modal-close');
+    function openBoxModal(key) {
+      haptic();
+      currentCaseKey = key;
+      const prices = { starter: 100, stars: 500, vip: 2500 };
+      const names = { starter: 'Starter Box', stars: 'Stars Box', vip: 'High Roller NFT' };
 
-      modal.classList.add('active');
-      closeBtn.style.display = 'none';
-      modalStatus.innerText = 'Крутим рулетку...';
+      currentCasePrice = prices[key];
+      document.getElementById('modal-title').innerText = names[key];
+      document.getElementById('modal-subtitle').innerText = `Стоимость: ${currentCasePrice} 🪙`;
+      document.getElementById('btn-spin').innerText = `Открыть за ${currentCasePrice} 🪙`;
+      document.getElementById('btn-spin').style.display = 'block';
 
-      // Генерация фейковой ленты предметов для анимации
-      const fakeIcons = ['🌟', '🎁', '🧸', '💖', '🎉', '📱', '🖼', '👑'];
+      // Генерация превью трека
+      const track = document.getElementById('roulette-track');
       track.style.transition = 'none';
       track.style.transform = 'translateX(0px)';
       track.innerHTML = '';
-
-      for (let i = 0; i < 40; i++) {
-        const randomIcon = fakeIcons[Math.floor(Math.random() * fakeIcons.length)];
-        track.innerHTML += `
-          <div class="track-item">
-            <div style="font-size:2rem">${randomIcon}</div>
-            <div style="font-size:0.65rem; color:#8e94a8">Item</div>
-          </div>
-        `;
+      const icons = ['🌟', '🎁', '🧸', '💖', '🎉', '📱', '🖼', '👑'];
+      for (let i = 0; i < 35; i++) {
+        const icon = icons[i % icons.length];
+        track.innerHTML += `<div class="track-item"><div style="font-size:2rem">${icon}</div></div>`;
       }
 
-      // Запрос выпавшего предмета к бэкенду
-      const res = await fetch('/api/open_case', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, case_key: caseKey })
-      });
-
-      const data = await res.json();
-      if (data.error) {
-        alert(data.error);
-        modal.classList.remove('active');
-        return;
-      }
-
-      // Вставляем победивший предмет на 32-ю позицию ленты
-      const trackItems = track.querySelectorAll('.track-item');
-      trackItems[30].innerHTML = `
-        <div style="font-size:2rem">${data.item.icon}</div>
-        <div style="font-size:0.65rem; color:#ffb703; font-weight:800">${data.item.name}</div>
-      `;
-
-      // Анимация прокрутки
-      setTimeout(() => {
-        track.style.transition = 'transform 4.5s cubic-bezier(0.1, 1, 0.1, 1)';
-        track.style.transform = `translateX(-${30 * 100 - 130}px)`;
-      }, 100);
-
-      setTimeout(() => {
-        modalStatus.innerText = `Выпало: ${data.item.name} (${data.item.price} 🪙)!`;
-        closeBtn.style.display = 'block';
-        loadUserData();
-      }, 4800);
+      document.getElementById('modal-box').classList.add('active');
     }
 
     function closeModal() {
-      document.getElementById('roulette-modal').classList.remove('active');
+      haptic();
+      document.getElementById('modal-box').classList.remove('active');
     }
 
-    async function sellAll() {
+    async function spinRoulette() {
+      haptic();
+      const btnSpin = document.getElementById('btn-spin');
+      btnSpin.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/open_case', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, case_key: currentCaseKey })
+        });
+        const data = await res.json();
+
+        if (data.error) {
+          alert(data.error);
+          btnSpin.style.display = 'block';
+          return;
+        }
+
+        const track = document.getElementById('roulette-track');
+        const items = track.querySelectorAll('.track-item');
+        items[28].innerHTML = `<div style="font-size:2rem">${data.item.icon}</div><div style="font-size:0.6rem; color:#ffd166; font-weight:800;">${data.item.name}</div>`;
+
+        track.style.transition = 'transform 4.5s cubic-bezier(0.1, 1, 0.1, 1)';
+        track.style.transform = 'translateX(-2370px)';
+
+        setTimeout(() => {
+          try { tg?.HapticFeedback?.notificationOccurred('success'); } catch(e){}
+          alert(`🎉 Поздравляем! Вам выпал: ${data.item.name} (${data.item.price} 🪙)!`);
+          loadData();
+          closeModal();
+        }, 4800);
+
+      } catch(e) {
+        alert('Ошибка открытия!');
+        btnSpin.style.display = 'block';
+      }
+    }
+
+    async function sellAllNFT() {
+      haptic();
       const res = await fetch('/api/sell_all', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId })
       });
       const data = await res.json();
-      alert(`Успешно продано на сумму +${data.sold_amount} 🪙!`);
-      loadUserData();
+      alert(`💰 Продано предметов на сумму +${data.sold_amount} 🪙!`);
+      loadData();
     }
 
     async function buyStars(stars) {
+      haptic();
       const res = await fetch('/api/pay_stars', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, stars: stars })
       });
       const data = await res.json();
-      if (data.invoice_link) {
+      if (data.invoice_link && tg) {
         tg.openInvoice(data.invoice_link, (status) => {
           if (status === 'paid') {
             alert('Оплата прошла успешно!');
-            loadUserData();
+            loadData();
           }
         });
       }
     }
 
-    loadUserData();
+    loadData();
   </script>
 </body>
 </html>
